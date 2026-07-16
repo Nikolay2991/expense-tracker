@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Prisma
+prisma/migrations/dev.db
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml

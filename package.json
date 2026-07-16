@@ -1,0 +1,22 @@
+{
+  "name": "expense-tracker",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --filter '@expense-tracker/shared' build && pnpm --parallel --filter './apps/*' build",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint -- --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,css,md}\" --ignore-path .prettierignore",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  }
+}
