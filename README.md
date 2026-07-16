@@ -4,9 +4,9 @@
 
 ## Стек
 
-- **Frontend:** Next.js 14 (App Router, TypeScript)
-- **Backend:** Nest.js (TypeScript)
-- **База данных:** PostgreSQL
+- **Frontend:** Next.js 16 (App Router, TypeScript) — `http://localhost:3000`
+- **Backend:** Nest.js (TypeScript) — `http://localhost:3001`
+- **База данных:** PostgreSQL 16
 - **ORM:** Prisma
 - **Пакетный менеджер:** pnpm workspaces
 
@@ -20,26 +20,72 @@ packages/
   shared/     — Общие типы и DTO
 ```
 
-## Запуск
+## Быстрый старт
+
+### 1. Зависимости
 
 ```bash
-# Установка зависимостей
 pnpm install
+```
 
-# Генерация Prisma-клиента
-pnpm --filter backend prisma generate
+### 2. Переменные окружения
 
-# Применение миграций
-pnpm --filter backend prisma migrate dev
+```bash
+cp apps/backend/.env.example apps/backend/.env
+```
 
-# Запуск в режиме разработки
+При необходимости отредактируйте `apps/backend/.env` — по умолчанию настроено под локальный Docker.
+
+### 3. База данных
+
+Запустите PostgreSQL через Docker:
+
+```bash
+docker compose up -d
+```
+
+Проверить статус:
+
+```bash
+docker compose ps
+```
+
+### 4. Миграции и генерация Prisma-клиента
+
+```bash
+pnpm --filter backend prisma migrate dev --name init
+```
+
+Эта команда одновременно применяет миграции и генерирует клиент. При последующих изменениях схемы:
+
+```bash
+pnpm --filter backend prisma migrate dev --name <название_изменения>
+```
+
+Открыть Prisma Studio (GUI для просмотра БД):
+
+```bash
+pnpm --filter backend prisma:studio
+```
+
+### 5. Запуск в режиме разработки
+
+```bash
 pnpm dev
 ```
 
-## Переменные окружения
+Фронтенд и бэкенд запускаются параллельно.
 
-Скопируйте `.env.example` в `.env` в корне и в `apps/backend/`:
+## Полезные команды
 
-```bash
-cp .env.example apps/backend/.env
-```
+| Команда | Описание |
+|---|---|
+| `pnpm dev` | Запуск всех приложений в watch-режиме |
+| `pnpm build` | Сборка всех приложений |
+| `pnpm lint` | Проверка линтером |
+| `pnpm lint:fix` | Автоисправление ошибок линтера |
+| `pnpm format` | Форматирование кода через Prettier |
+| `pnpm typecheck` | Проверка типов TypeScript |
+| `docker compose up -d` | Запуск PostgreSQL |
+| `docker compose down` | Остановка PostgreSQL |
+| `docker compose down -v` | Остановка PostgreSQL и удаление данных |
