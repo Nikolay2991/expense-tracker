@@ -31,3 +31,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+
+# Claude
+.claude/*
+CLAUDE.md
