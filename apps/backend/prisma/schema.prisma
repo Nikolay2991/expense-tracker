@@ -7,18 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TransactionType {
+  income
+  expense
+}
+
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String
-  color     String?
-  icon      String?
-  userId    Int
-  user      User      @relation(fields: [userId], references: [id])
-  expenses  Expense[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           Int           @id @default(autoincrement())
+  name         String
+  color        String?
+  icon         String?
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
+  expenses     Expense[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@unique([userId, name])
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  amount      Decimal         @db.Decimal(12, 2)
+  type        TransactionType
+  description String?
+  date        DateTime        @default(now())
+  category    Category        @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  user        User            @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model Expense {
@@ -33,11 +53,12 @@ model Expense {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  email        String     @unique
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
   name         String
   passwordHash String
   categories   Category[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
