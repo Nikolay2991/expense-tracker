@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ApiError } from "@/shared/api/client";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
 import {
   Form,
@@ -27,13 +29,13 @@ export function RegisterForm() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "", agreedToTerms: false },
   });
 
-  async function onSubmit(values: RegisterFormValues) {
+  async function onSubmit({ agreedToTerms: _agreedToTerms, ...dto }: RegisterFormValues) {
     setIsSubmitting(true);
     try {
-      const auth = await registerRequest(values);
+      const auth = await registerRequest(dto);
       login(auth);
       router.push("/");
     } catch (error) {
@@ -87,6 +89,42 @@ export function RegisterForm() {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="agreedToTerms"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-start gap-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="mt-0.5"
+                  />
+                </FormControl>
+                <FormLabel className="block flex-1 font-normal leading-snug">
+                  Согласен с{" "}
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    пользовательским соглашением
+                  </Link>{" "}
+                  и{" "}
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    политикой безопасности
+                  </Link>
+                </FormLabel>
+              </div>
               <FormMessage />
             </FormItem>
           )}
