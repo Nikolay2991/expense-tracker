@@ -11,28 +11,35 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
+import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import {
   CurrentUser,
   JwtUser,
 } from "../auth/decorators/current-user.decorator";
-import { CategoriesService } from "./categories.service";
+import { CreateCategoryCommand } from "./commands/create-category.command";
+import { DeleteCategoryCommand } from "./commands/delete-category.command";
+import { UpdateCategoryCommand } from "./commands/update-category.command";
 import { CreateCategoryDto } from "./dto/create-category.dto";
 import { UpdateCategoryDto } from "./dto/update-category.dto";
+import { GetCategoriesQuery } from "./queries/get-categories.query";
 
 @Controller("categories")
 @UseGuards(JwtAuthGuard)
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Post()
   create(@CurrentUser() user: JwtUser, @Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(user.id, dto);
+    return this.commandBus.execute(new CreateCategoryCommand(user.id, dto));
   }
 
   @Get()
   findAll(@CurrentUser() user: JwtUser) {
-    return this.categoriesService.findAll(user.id);
+    return this.queryBus.execute(new GetCategoriesQuery(user.id));
   }
 
   @Patch(":id")
@@ -41,15 +48,14 @@ export class CategoriesController {
     @CurrentUser() user: JwtUser,
     @Body() dto: UpdateCategoryDto,
   ) {
-    return this.categoriesService.update(id, user.id, dto);
+    return this.commandBus.execute(
+      new UpdateCategoryCommand(id, user.id, dto),
+    );
   }
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(
-    @Param("id", ParseIntPipe) id: number,
-    @CurrentUser() user: JwtUser,
-  ) {
-    return this.categoriesService.remove(id, user.id);
+  remove(@Param("id", ParseIntPipe) id: number, @CurrentUser() user: JwtUser) {
+    return this.commandBus.execute(new DeleteCategoryCommand(id, user.id));
   }
 }
