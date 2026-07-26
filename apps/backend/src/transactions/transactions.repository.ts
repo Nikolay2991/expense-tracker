@@ -2,6 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { Prisma, Transaction, TransactionType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 
+const transactionWithCategory = Prisma.validator<Prisma.TransactionDefaultArgs>()({
+  include: { category: true },
+});
+
+export type TransactionWithCategory = Prisma.TransactionGetPayload<typeof transactionWithCategory>;
+
 @Injectable()
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -12,11 +18,25 @@ export class TransactionsRepository {
 
   findManyByUser(
     userId: number,
-    dateRange?: { gte: Date; lt: Date },
-  ): Promise<Transaction[]> {
+    options: {
+      dateRange?: { gte: Date; lt: Date };
+      skip?: number;
+      take?: number;
+    } = {},
+  ): Promise<TransactionWithCategory[]> {
+    const { dateRange, skip, take } = options;
     return this.prisma.transaction.findMany({
       where: { userId, ...(dateRange ? { date: dateRange } : {}) },
       orderBy: { date: "desc" },
+      include: { category: true },
+      skip,
+      take,
+    });
+  }
+
+  countByUser(userId: number, dateRange?: { gte: Date; lt: Date }): Promise<number> {
+    return this.prisma.transaction.count({
+      where: { userId, ...(dateRange ? { date: dateRange } : {}) },
     });
   }
 
@@ -43,10 +63,7 @@ export class TransactionsRepository {
       .then((category) => category !== null);
   }
 
-  update(
-    id: number,
-    data: Prisma.TransactionUncheckedUpdateInput,
-  ): Promise<Transaction> {
+  update(id: number, data: Prisma.TransactionUncheckedUpdateInput): Promise<Transaction> {
     return this.prisma.transaction.update({ where: { id }, data });
   }
 

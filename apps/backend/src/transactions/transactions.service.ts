@@ -1,9 +1,5 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
-import { Prisma, Transaction, TransactionType } from "@prisma/client";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { Category as CategoryModel, Prisma, Transaction, TransactionType } from "@prisma/client";
 import type {
   Transaction as TransactionDto,
   TransactionsListResponse,
@@ -18,10 +14,7 @@ import { QueryTransactionsDto } from "./dto/query-transactions.dto";
 export class TransactionsService {
   constructor(private readonly repo: TransactionsRepository) {}
 
-  async create(
-    userId: number,
-    dto: CreateTransactionDto,
-  ): Promise<TransactionDto> {
+  async create(userId: number, dto: CreateTransactionDto): Promise<TransactionDto> {
     await this.assertCategoryOwned(dto.categoryId, userId);
 
     const transaction = await this.repo.create({
@@ -36,14 +29,15 @@ export class TransactionsService {
     return this.toDto(transaction);
   }
 
-  async findAll(
-    userId: number,
-    query: QueryTransactionsDto,
-  ): Promise<TransactionsListResponse> {
+  async findAll(userId: number, query: QueryTransactionsDto): Promise<TransactionsListResponse> {
     const dateRange = this.buildDateRange(query);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
 
-    const [transactions, incomeSum, expenseSum] = await Promise.all([
-      this.repo.findManyByUser(userId, dateRange),
+    const [transactions, total, incomeSum, expenseSum] = await Promise.all([
+      this.repo.findManyByUser(userId, { dateRange, skip, take: limit }),
+      this.repo.countByUser(userId, dateRange),
       this.repo.sumByType(userId, TransactionType.income, dateRange),
       this.repo.sumByType(userId, TransactionType.expense, dateRange),
     ]);
@@ -56,7 +50,13 @@ export class TransactionsService {
       balance: income - expense,
     };
 
-    return { transactions: transactions.map((t) => this.toDto(t)), summary };
+    return {
+      transactions: transactions.map((t) => this.toDto(t)),
+      summary,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: number, userId: number): Promise<TransactionDto> {
@@ -64,11 +64,7 @@ export class TransactionsService {
     return this.toDto(transaction);
   }
 
-  async update(
-    id: number,
-    userId: number,
-    dto: UpdateTransactionDto,
-  ): Promise<TransactionDto> {
+  async update(id: number, userId: number, dto: UpdateTransactionDto): Promise<TransactionDto> {
     await this.getOwned(id, userId);
 
     if (dto.categoryId !== undefined) {
@@ -76,13 +72,9 @@ export class TransactionsService {
     }
 
     const transaction = await this.repo.update(id, {
-      ...(dto.amount !== undefined
-        ? { amount: new Prisma.Decimal(dto.amount) }
-        : {}),
+      ...(dto.amount !== undefined ? { amount: new Prisma.Decimal(dto.amount) } : {}),
       ...(dto.type !== undefined ? { type: dto.type } : {}),
-      ...(dto.description !== undefined
-        ? { description: dto.description }
-        : {}),
+      ...(dto.description !== undefined ? { description: dto.description } : {}),
       ...(dto.date !== undefined ? { date: dto.date } : {}),
       ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
     });
@@ -103,19 +95,14 @@ export class TransactionsService {
     return transaction;
   }
 
-  private async assertCategoryOwned(
-    categoryId: number,
-    userId: number,
-  ): Promise<void> {
+  private async assertCategoryOwned(categoryId: number, userId: number): Promise<void> {
     const exists = await this.repo.categoryExistsForUser(categoryId, userId);
     if (!exists) {
       throw new BadRequestException(`Категория #${categoryId} не найдена`);
     }
   }
 
-  private buildDateRange(
-    query: QueryTransactionsDto,
-  ): { gte: Date; lt: Date } | undefined {
+  private buildDateRange(query: QueryTransactionsDto): { gte: Date; lt: Date } | undefined {
     const { month, year } = query;
     if (year === undefined && month === undefined) return undefined;
 
@@ -135,10 +122,12 @@ export class TransactionsService {
     };
   }
 
-  private toDto(transaction: Transaction): TransactionDto {
+  private toDto(transaction: Transaction & { category?: CategoryModel | null }): TransactionDto {
+    const { category, ...rest } = transaction;
     return {
-      ...transaction,
+      ...rest,
       amount: transaction.amount.toNumber(),
+      ...(category ? { category } : {}),
     };
   }
 }
