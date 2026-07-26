@@ -1,4 +1,4 @@
-import type { Category } from "./expense";
+import type { Category } from "./category";
 
 export type TransactionType = "income" | "expense";
 
