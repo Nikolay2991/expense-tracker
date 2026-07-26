@@ -40,4 +40,7 @@ export interface TransactionsSummary {
 export interface TransactionsListResponse {
   transactions: Transaction[];
   summary: TransactionsSummary;
+  total: number;
+  page: number;
+  limit: number;
 }
