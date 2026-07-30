@@ -8,6 +8,10 @@ import {
   TransactionQueryHandlers,
 } from "./handlers";
 
+/**
+ * Модуль фичи «Транзакции». Подключает `CqrsModule`, регистрирует контроллер,
+ * сервис, репозиторий и все CQRS-обработчики команд/запросов.
+ */
 @Module({
   imports: [CqrsModule],
   controllers: [TransactionsController],

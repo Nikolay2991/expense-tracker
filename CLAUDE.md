@@ -55,3 +55,7 @@ Shared-пакет подключается как `workspace:*` и резолв�
 
 - Корневой `.env.example` содержит только `DATABASE_URL` для справки.
 - Пакетные `.env` описаны в `apps/backend/CLAUDE.md` и `apps/frontend/CLAUDE.md`.
+
+## Документация
+После изменения методов — обновляй JSDoc.
+Для DTO и контроллеров — добавляй/обновляй Swagger декораторы.
