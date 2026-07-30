@@ -36,7 +36,7 @@ Controller → CommandBus/QueryBus → Command/Query Handler → Service → Rep
 - **`handlers.ts`** — экспортирует массивы `XCommandHandlers` / `XQueryHandlers`, которые спредятся в `providers` модуля.
 - **`<feature>.service.ts`** — вся бизнес-логика: проверки владения, правила, маппинг Prisma-модели → shared-DTO, выброс исключений.
 - **`<feature>.repository.ts`** — **единственный слой, который трогает `PrismaService`**. Возвращает Prisma-типы; для `include` использует `Prisma.validator<...>()` + `Prisma.<Model>GetPayload<...>`.
-- **`dto/*.dto.ts`** — входные DTO с декораторами `class-validator`. Update-DTO наследует Create через `PartialType` (`@nestjs/mapped-types`).
+- **`dto/*.dto.ts`** — входные DTO с декораторами `class-validator` и Swagger-декораторами (`@ApiProperty`/`@ApiPropertyOptional`). Update-DTO наследует Create через `PartialType` (`@nestjs/swagger` — в отличие от `@nestjs/mapped-types` протягивает `@ApiProperty`-метаданные в схему).
 - **`<feature>.module.ts`** — `imports: [CqrsModule]`, регистрирует controller, service, repository и спред хендлеров.
 
 Ориентир для копирования — модуль `transactions` (самый полный: пагинация, фильтр по датам, агрегаты-суммы).
@@ -69,6 +69,7 @@ Controller → CommandBus/QueryBus → Command/Query Handler → Service → Rep
 - Префикс `/api`, CORS ограничен `FRONTEND_URL` (по умолчанию `http://localhost:3000`).
 - Глобальный `ThrottlerGuard`: 100 запросов/мин с IP (`ThrottlerModule.forRoot`).
 - `ConfigModule.forRoot({ isGlobal: true })` — доступ к env через `ConfigService` везде.
+- Swagger-документация на `/api/docs` включена только вне production (`NODE_ENV !== "production"`) — публично отдавать полную схему API в проде не нужно.
 
 ## Модели БД
 
@@ -85,6 +86,7 @@ Controller → CommandBus/QueryBus → Command/Query Handler → Service → Rep
 - `JWT_EXPIRES_IN` — TTL токена (по умолчанию `7d`).
 - `FRONTEND_URL` — origin для CORS (по умолчанию `http://localhost:3000`).
 - `PORT` — порт backend (по умолчанию `3001`).
+- `NODE_ENV` — при `production` отключает Swagger-документацию на `/api/docs`.
 
 ## Общие типы
 
