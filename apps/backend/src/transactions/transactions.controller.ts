@@ -29,8 +29,14 @@ import {
 import { CreateTransactionCommand } from "./commands/create-transaction.command";
 import { DeleteTransactionCommand } from "./commands/delete-transaction.command";
 import { UpdateTransactionCommand } from "./commands/update-transaction.command";
+import {
+  ApiTransactionNotFoundResponse,
+  ApiTransactionUnauthorizedResponse,
+} from "./decorators/api-transactions-responses.decorator";
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { QueryTransactionsDto } from "./dto/query-transactions.dto";
+import { TransactionResponseDto } from "./dto/transaction-response.dto";
+import { TransactionsListResponseDto } from "./dto/transactions-list-response.dto";
 import { UpdateTransactionDto } from "./dto/update-transaction.dto";
 import { GetTransactionByIdQuery } from "./queries/get-transaction-by-id.query";
 import { GetTransactionsQuery } from "./queries/get-transactions.query";
@@ -59,9 +65,9 @@ export class TransactionsController {
    * @throws {BadRequestException} Если категория не принадлежит пользователю или тело невалидно.
    */
   @ApiOperation({ summary: "Создать транзакцию" })
-  @ApiResponse({ status: 201, description: "Транзакция успешно создана" })
+  @ApiResponse({ status: 201, description: "Транзакция успешно создана", type: TransactionResponseDto })
   @ApiResponse({ status: 400, description: "Невалидные данные или категория не принадлежит пользователю" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
+  @ApiTransactionUnauthorizedResponse()
   @Post()
   create(@CurrentUser() user: JwtUser, @Body() dto: CreateTransactionDto) {
     return this.commandBus.execute(new CreateTransactionCommand(user.id, dto));
@@ -75,12 +81,36 @@ export class TransactionsController {
    * @returns Список транзакций, сводка сумм и метаданные пагинации.
    */
   @ApiOperation({ summary: "Получить список транзакций пользователя с пагинацией и сводкой сумм" })
-  @ApiQuery({ name: "month", required: false, type: Number, description: "Месяц фильтра (1–12)" })
-  @ApiQuery({ name: "year", required: false, type: Number, description: "Год фильтра" })
-  @ApiQuery({ name: "page", required: false, type: Number, description: "Номер страницы (по умолчанию 1)" })
-  @ApiQuery({ name: "limit", required: false, type: Number, description: "Размер страницы (по умолчанию 10)" })
-  @ApiResponse({ status: 200, description: "Список транзакций, сводка сумм и метаданные пагинации" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
+  @ApiQuery({
+    name: "month",
+    required: false,
+    description: "Месяц фильтра (1–12); без указания года берётся текущий UTC-год",
+    schema: { type: "integer", minimum: 1, maximum: 12 },
+  })
+  @ApiQuery({
+    name: "year",
+    required: false,
+    description: "Год фильтра; без указания месяца охватывает весь год",
+    schema: { type: "integer", minimum: 1970, maximum: 9999 },
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    description: "Номер страницы",
+    schema: { type: "integer", minimum: 1, default: 1 },
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    description: "Размер страницы",
+    schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Список транзакций, сводка сумм и метаданные пагинации",
+    type: TransactionsListResponseDto,
+  })
+  @ApiTransactionUnauthorizedResponse()
   @Get()
   findAll(
     @CurrentUser() user: JwtUser,
@@ -99,9 +129,9 @@ export class TransactionsController {
    */
   @ApiOperation({ summary: "Получить транзакцию по идентификатору" })
   @ApiParam({ name: "id", type: Number, description: "Идентификатор транзакции" })
-  @ApiResponse({ status: 200, description: "Транзакция найдена" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
-  @ApiResponse({ status: 404, description: "Транзакция не найдена" })
+  @ApiResponse({ status: 200, description: "Транзакция найдена", type: TransactionResponseDto })
+  @ApiTransactionUnauthorizedResponse()
+  @ApiTransactionNotFoundResponse()
   @Get(":id")
   findOne(
     @Param("id", ParseIntPipe) id: number,
@@ -122,10 +152,10 @@ export class TransactionsController {
    */
   @ApiOperation({ summary: "Частично обновить транзакцию" })
   @ApiParam({ name: "id", type: Number, description: "Идентификатор транзакции" })
-  @ApiResponse({ status: 200, description: "Транзакция обновлена" })
+  @ApiResponse({ status: 200, description: "Транзакция обновлена", type: TransactionResponseDto })
   @ApiResponse({ status: 400, description: "Невалидные данные или категория не принадлежит пользователю" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
-  @ApiResponse({ status: 404, description: "Транзакция не найдена" })
+  @ApiTransactionUnauthorizedResponse()
+  @ApiTransactionNotFoundResponse()
   @Patch(":id")
   update(
     @Param("id", ParseIntPipe) id: number,
@@ -148,8 +178,8 @@ export class TransactionsController {
   @ApiOperation({ summary: "Удалить транзакцию" })
   @ApiParam({ name: "id", type: Number, description: "Идентификатор транзакции" })
   @ApiResponse({ status: 204, description: "Транзакция удалена" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
-  @ApiResponse({ status: 404, description: "Транзакция не найдена" })
+  @ApiTransactionUnauthorizedResponse()
+  @ApiTransactionNotFoundResponse()
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param("id", ParseIntPipe) id: number, @CurrentUser() user: JwtUser) {
