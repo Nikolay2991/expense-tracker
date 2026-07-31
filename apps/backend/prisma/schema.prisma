@@ -26,27 +26,44 @@ model Category {
   @@unique([userId, name])
 }
 
-model Transaction {
-  id          Int             @id @default(autoincrement())
-  amount      Decimal         @db.Decimal(12, 2)
-  type        TransactionType
-  description String?
-  date        DateTime        @default(now())
-  category    Category        @relation(fields: [categoryId], references: [id])
-  categoryId  Int
-  user        User            @relation(fields: [userId], references: [id])
-  userId      Int
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-model User {
+model PaymentMethod {
   id           Int           @id @default(autoincrement())
-  email        String        @unique
   name         String
-  passwordHash String
-  categories   Category[]
+  color        String?
+  icon         String?
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id              Int             @id @default(autoincrement())
+  amount          Decimal         @db.Decimal(12, 2)
+  type            TransactionType
+  description     String?
+  date            DateTime        @default(now())
+  category        Category        @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  paymentMethod   PaymentMethod?  @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId Int?
+  user            User            @relation(fields: [userId], references: [id])
+  userId          Int
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  name           String
+  passwordHash   String
+  categories     Category[]
+  paymentMethods PaymentMethod[]
+  transactions   Transaction[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }

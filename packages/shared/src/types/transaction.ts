@@ -1,4 +1,5 @@
 import type { Category } from "./category";
+import type { PaymentMethod } from "./payment-method";
 
 export type TransactionType = "income" | "expense";
 
@@ -10,6 +11,8 @@ export interface Transaction {
   date: Date;
   categoryId: number;
   category?: Category;
+  paymentMethodId: number | null;
+  paymentMethod?: PaymentMethod;
   userId: number;
   createdAt: Date;
   updatedAt: Date;
@@ -21,6 +24,7 @@ export interface CreateTransactionDto {
   description?: string;
   date?: Date;
   categoryId: number;
+  paymentMethodId?: number;
 }
 
 export interface UpdateTransactionDto {
@@ -29,6 +33,7 @@ export interface UpdateTransactionDto {
   description?: string;
   date?: Date;
   categoryId?: number;
+  paymentMethodId?: number;
 }
 
 export interface TransactionsSummary {
