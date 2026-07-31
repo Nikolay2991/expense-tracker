@@ -1,5 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Category as CategoryModel, Prisma, Transaction, TransactionType } from "@prisma/client";
+import {
+  Category as CategoryModel,
+  PaymentMethod as PaymentMethodModel,
+  Prisma,
+  Transaction,
+  TransactionType,
+} from "@prisma/client";
 import type {
   Transaction as TransactionDto,
   TransactionsListResponse,
@@ -26,10 +32,14 @@ export class TransactionsService {
    * @param userId - Идентификатор владельца-создателя.
    * @param dto - Данные новой транзакции (`amount`, `type`, `categoryId`, и т.д.).
    * @returns Созданная транзакция в формате shared-DTO.
-   * @throws {BadRequestException} Если категория `dto.categoryId` не принадлежит пользователю.
+   * @throws {BadRequestException} Если категория `dto.categoryId` не принадлежит пользователю,
+   *   либо задан `dto.paymentMethodId`, не принадлежащий пользователю.
    */
   async create(userId: number, dto: CreateTransactionDto): Promise<TransactionDto> {
     await this.assertCategoryOwned(dto.categoryId, userId);
+    if (dto.paymentMethodId !== undefined) {
+      await this.assertPaymentMethodOwned(dto.paymentMethodId, userId);
+    }
 
     const transaction = await this.repo.create({
       userId,
@@ -38,6 +48,7 @@ export class TransactionsService {
       description: dto.description,
       date: dto.date,
       categoryId: dto.categoryId,
+      paymentMethodId: dto.paymentMethodId,
     });
 
     return this.toDto(transaction);
@@ -105,13 +116,17 @@ export class TransactionsService {
    * @param dto - Частичный набор полей для обновления.
    * @returns Обновлённая транзакция в формате shared-DTO.
    * @throws {NotFoundException} Если транзакция не найдена или принадлежит другому пользователю.
-   * @throws {BadRequestException} Если задан `dto.categoryId`, не принадлежащий пользователю.
+   * @throws {BadRequestException} Если задан `dto.categoryId` или `dto.paymentMethodId`,
+   *   не принадлежащий пользователю.
    */
   async update(id: number, userId: number, dto: UpdateTransactionDto): Promise<TransactionDto> {
     await this.getOwned(id, userId);
 
     if (dto.categoryId !== undefined) {
       await this.assertCategoryOwned(dto.categoryId, userId);
+    }
+    if (dto.paymentMethodId !== undefined) {
+      await this.assertPaymentMethodOwned(dto.paymentMethodId, userId);
     }
 
     const transaction = await this.repo.update(id, {
@@ -120,6 +135,7 @@ export class TransactionsService {
       ...(dto.description !== undefined ? { description: dto.description } : {}),
       ...(dto.date !== undefined ? { date: dto.date } : {}),
       ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
+      ...(dto.paymentMethodId !== undefined ? { paymentMethodId: dto.paymentMethodId } : {}),
     });
 
     return this.toDto(transaction);
@@ -170,6 +186,21 @@ export class TransactionsService {
   }
 
   /**
+   * Проверяет, что способ оплаты принадлежит пользователю, иначе прерывает операцию.
+   *
+   * @param paymentMethodId - Идентификатор способа оплаты.
+   * @param userId - Предполагаемый владелец способа оплаты.
+   * @returns Ничего (`void`), если проверка пройдена.
+   * @throws {BadRequestException} Если способ оплаты не найден или принадлежит другому пользователю.
+   */
+  private async assertPaymentMethodOwned(paymentMethodId: number, userId: number): Promise<void> {
+    const exists = await this.repo.paymentMethodExistsForUser(paymentMethodId, userId);
+    if (!exists) {
+      throw new BadRequestException(`Способ оплаты #${paymentMethodId} не найден`);
+    }
+  }
+
+  /**
    * Строит полуоткрытый интервал дат `[gte, lt)` в UTC по фильтрам месяца/года.
    * Если задан только год — интервал охватывает весь год; если задан месяц —
    * конкретный месяц (при отсутствии года берётся текущий UTC-год).
@@ -200,17 +231,23 @@ export class TransactionsService {
 
   /**
    * Преобразует Prisma-модель транзакции в shared-DTO: конвертирует денежное поле
-   * `amount` из `Prisma.Decimal` в `number` и включает категорию, если она загружена.
+   * `amount` из `Prisma.Decimal` в `number` и включает категорию/способ оплаты, если они загружены.
    *
-   * @param transaction - Prisma-модель транзакции, опционально с включённой категорией.
+   * @param transaction - Prisma-модель транзакции, опционально с включёнными категорией и способом оплаты.
    * @returns Транзакция в формате shared-DTO, безопасном для отдачи наружу.
    */
-  private toDto(transaction: Transaction & { category?: CategoryModel | null }): TransactionDto {
-    const { category, ...rest } = transaction;
+  private toDto(
+    transaction: Transaction & {
+      category?: CategoryModel | null;
+      paymentMethod?: PaymentMethodModel | null;
+    },
+  ): TransactionDto {
+    const { category, paymentMethod, ...rest } = transaction;
     return {
       ...rest,
       amount: transaction.amount.toNumber(),
       ...(category ? { category } : {}),
+      ...(paymentMethod ? { paymentMethod } : {}),
     };
   }
 }

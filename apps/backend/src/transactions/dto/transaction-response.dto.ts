@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { TransactionType } from "@prisma/client";
 import type { Transaction } from "@expense-tracker/shared";
 import { CategoryResponseDto } from "../../categories/dto/category-response.dto";
+import { PaymentMethodResponseDto } from "../../payment-methods/dto/payment-method-response.dto";
 
 /**
  * Swagger-схема транзакции в ответах API. Структурно соответствует
@@ -28,6 +29,15 @@ export class TransactionResponseDto implements Transaction {
 
   @ApiPropertyOptional({ description: "Категория транзакции (если включена в выборку)", type: CategoryResponseDto })
   category?: CategoryResponseDto;
+
+  @ApiProperty({ description: "Идентификатор способа оплаты", example: 1, nullable: true })
+  paymentMethodId!: number | null;
+
+  @ApiPropertyOptional({
+    description: "Способ оплаты транзакции (если включён в выборку)",
+    type: PaymentMethodResponseDto,
+  })
+  paymentMethod?: PaymentMethodResponseDto;
 
   @ApiProperty({ description: "Идентификатор владельца", example: 1 })
   userId!: number;

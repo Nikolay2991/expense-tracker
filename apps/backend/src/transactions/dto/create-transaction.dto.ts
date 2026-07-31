@@ -66,4 +66,13 @@ export class CreateTransactionDto {
   })
   @IsInt()
   categoryId!: number;
+
+  /** Необязательный идентификатор способа оплаты; владение проверяется в сервисе. */
+  @ApiPropertyOptional({
+    description: "Идентификатор способа оплаты, принадлежащего пользователю",
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  paymentMethodId?: number;
 }

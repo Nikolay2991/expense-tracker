@@ -20,9 +20,9 @@ pnpm dlx shadcn@latest add <component>
 ```
 src/
   app/        # роутинг Next.js: page.tsx, layout.tsx, providers.tsx — без бизнес-логики
-  widgets/    # композиции из нескольких features/entities (пока не используется)
-  features/   # пользовательские сценарии: features/auth (api/model/ui)
-  entities/   # бизнес-сущности: entities/user (типы, без логики)
+  widgets/    # композиции из нескольких features/entities: main-nav, user-profile
+  features/   # пользовательские сценарии: auth, create-transaction, transactions-list (api/model/ui)
+  entities/   # бизнес-сущности: user, category, transaction (типы, без логики)
   shared/     # переиспользуемое без привязки к домену
     ui/       # компоненты shadcn/ui (алиас @/shared/ui, кладутся сюда через components.json)
     lib/      # утилиты, включая cn() в lib/utils.ts

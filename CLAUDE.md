@@ -35,21 +35,23 @@ pnpm typecheck
 pnpm workspaces монорепо без Turborepo. Три пакета:
 
 - `apps/frontend` — Next.js 16, App Router, Feature-Sliced Design, Tailwind v4 + shadcn/ui, порт 3000
-- `apps/backend` — Nest.js 10, REST API с префиксом `/api`, порт 3001
+- `apps/backend` — Nest.js 11, REST API с префиксом `/api`, порт 3001
 - `packages/shared` — общие TypeScript-интерфейсы для фронта и бэка
 
 Shared-пакет подключается как `workspace:*` и резолвится напрямую из `src/` (поле `main` указывает на `./src/index.ts`), поэтому сборка shared не требуется в dev-режиме.
 
 ## Общие типы
 
-- `packages/shared/src/types/expense.ts` — интерфейсы `Expense`, `Category`, `CreateExpenseDto`, `CreateCategoryDto`.
+- `packages/shared/src/types/category.ts` — `Category`, `CreateCategoryDto`, `UpdateCategoryDto`.
+- `packages/shared/src/types/payment-method.ts` — `PaymentMethod`, `CreatePaymentMethodDto`, `UpdatePaymentMethodDto`.
+- `packages/shared/src/types/transaction.ts` — `TransactionType`, `Transaction`, `CreateTransactionDto`, `UpdateTransactionDto`, `TransactionsSummary`, `TransactionsListResponse`.
 - `packages/shared/src/types/auth.ts` — `UserPublic`, `AuthResponse`, `RegisterDto`, `LoginDto`.
 
 Импортировать из `@expense-tracker/shared`, новые копии этих типов на фронте/бэке не заводить.
 
 ## Git
 
-Перед созданием ветки, коммита или Pull Request — прочитать `docs/git-conventions.md` (GitHub Flow, именование веток, Conventional Commits). В остальное время в этот файл заглядывать не нужно.
+Соглашения по веткам, коммитам и Pull Request (GitHub Flow, Conventional Commits) вынесены в скилл `commit` (`.claude/skills/commit/SKILL.md`) — он подхватывается автоматически перед созданием ветки, коммита или PR.
 
 ## Окружение
 
@@ -59,3 +61,6 @@ Shared-пакет подключается как `workspace:*` и резолв�
 ## Документация
 После изменения методов — обновляй JSDoc.
 Для DTO и контроллеров — добавляй/обновляй Swagger декораторы.
+
+При добавлении функционала проверяй .claude/docs/*.
+Актуализируй файлы при изменении архитектуры или API.

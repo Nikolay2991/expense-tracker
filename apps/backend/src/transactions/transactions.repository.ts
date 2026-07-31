@@ -2,11 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { Prisma, Transaction, TransactionType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 
-const transactionWithCategory = Prisma.validator<Prisma.TransactionDefaultArgs>()({
-  include: { category: true },
+const transactionWithRelations = Prisma.validator<Prisma.TransactionDefaultArgs>()({
+  include: { category: true, paymentMethod: true },
 });
 
-export type TransactionWithCategory = Prisma.TransactionGetPayload<typeof transactionWithCategory>;
+export type TransactionWithRelations = Prisma.TransactionGetPayload<typeof transactionWithRelations>;
 
 /**
  * Слой доступа к данным транзакций — единственное место, где выполняются
@@ -30,14 +30,14 @@ export class TransactionsRepository {
 
   /**
    * Возвращает страницу транзакций пользователя, отсортированных по дате (убывание),
-   * с включённой категорией.
+   * с включёнными категорией и способом оплаты.
    *
    * @param userId - Владелец, по которому фильтруется выборка.
    * @param options - Параметры выборки.
    * @param options.dateRange - Опциональный полуоткрытый интервал дат `[gte, lt)`.
    * @param options.skip - Сколько записей пропустить (смещение пагинации).
    * @param options.take - Максимальное количество записей на страницу.
-   * @returns Массив транзакций вместе с их категориями.
+   * @returns Массив транзакций вместе с их категориями и способами оплаты.
    */
   findManyByUser(
     userId: number,
@@ -46,12 +46,12 @@ export class TransactionsRepository {
       skip?: number;
       take?: number;
     } = {},
-  ): Promise<TransactionWithCategory[]> {
+  ): Promise<TransactionWithRelations[]> {
     const { dateRange, skip, take } = options;
     return this.prisma.transaction.findMany({
       where: { userId, ...(dateRange ? { date: dateRange } : {}) },
       orderBy: { date: "desc" },
-      include: { category: true },
+      include: { category: true, paymentMethod: true },
       skip,
       take,
     });
@@ -116,6 +116,20 @@ export class TransactionsRepository {
     return this.prisma.category
       .findFirst({ where: { id: categoryId, userId }, select: { id: true } })
       .then((category) => category !== null);
+  }
+
+  /**
+   * Проверяет, существует ли способ оплаты с данным id у пользователя — для валидации
+   * `paymentMethodId` перед созданием/обновлением транзакции.
+   *
+   * @param paymentMethodId - Идентификатор способа оплаты.
+   * @param userId - Предполагаемый владелец способа оплаты.
+   * @returns `true`, если способ оплаты принадлежит пользователю, иначе `false`.
+   */
+  paymentMethodExistsForUser(paymentMethodId: number, userId: number): Promise<boolean> {
+    return this.prisma.paymentMethod
+      .findFirst({ where: { id: paymentMethodId, userId }, select: { id: true } })
+      .then((paymentMethod) => paymentMethod !== null);
   }
 
   /**
