@@ -1,6 +1,6 @@
 # Backend (Nest.js)
 
-Nest.js 10, REST API с префиксом `/api`, порт 3001. Часть монорепо — общие правила см. в корневом `CLAUDE.md`.
+Nest.js 11, REST API с префиксом `/api`, порт 3001. Часть монорепо — общие правила см. в корневом `CLAUDE.md`.
 
 Стек: **CQRS** (`@nestjs/cqrs`), **Prisma** + PostgreSQL, **JWT-аутентификация** (Passport), валидация через `class-validator`/`class-transformer`. Все бизнес-данные (`Category`, `Transaction`) изолированы по пользователю — `userId` обязателен везде.
 
@@ -11,7 +11,7 @@ Nest.js 10, REST API с префиксом `/api`, порт 3001. Часть м�
 pnpm --filter backend dev
 
 # Prisma-миграции и studio
-pnpm --filter backend prisma migrate dev --name <name>
+pnpm --filter backend exec prisma migrate dev --name <name>
 pnpm --filter backend prisma:studio
 
 # Prisma Client после правки schema.prisma
@@ -24,7 +24,7 @@ docker compose down
 
 ## Архитектура фичи (CQRS)
 
-Каждая доменная фича (`categories`, `transactions`, `users`) — это папка `src/<feature>/` со слоями. Поток запроса:
+Каждая доменная фича (`categories`, `payment-methods`, `transactions`, `users`) — это папка `src/<feature>/` со слоями. Поток запроса:
 
 ```
 Controller → CommandBus/QueryBus → Command/Query Handler → Service → Repository → PrismaService
@@ -43,7 +43,7 @@ Controller → CommandBus/QueryBus → Command/Query Handler → Service → Rep
 
 ## Добавление новой фичи
 
-1. Модель в `prisma/schema.prisma` (с `userId` + связью на `User`, `createdAt`/`updatedAt`), затем `pnpm --filter backend prisma migrate dev --name <name>`.
+1. Модель в `prisma/schema.prisma` (с `userId` + связью на `User`, `createdAt`/`updatedAt`), затем `pnpm --filter backend exec prisma migrate dev --name <name>`.
 2. Создать `src/<feature>/` по структуре выше: command/query-классы, их handlers, `handlers.ts`, service, repository, DTO, module.
 3. Подключить `<Feature>Module` в `AppModule` (`src/app.module.ts`).
 4. Общие типы ответа (то, что уходит на фронт) — в `packages/shared`, импорт из `@expense-tracker/shared`. Prisma-модели наружу не отдаём.
@@ -75,7 +75,8 @@ Controller → CommandBus/QueryBus → Command/Query Handler → Service → Rep
 
 - `User` — `email @unique`, `name`, `passwordHash`.
 - `Category` — `@@unique([userId, name])`, опциональные `color`/`icon`, связь на `User`.
-- `Transaction` — `amount Decimal(12,2)`, `type TransactionType` (enum `income`/`expense`), `description?`, `date`, связи на `Category` и `User`.
+- `PaymentMethod` — структурно как `Category` (`@@unique([userId, name])`, `color?`/`icon?`, связь на `User`), но семантически отдельная сущность (способ оплаты, не категория расхода).
+- `Transaction` — `amount Decimal(12,2)`, `type TransactionType` (enum `income`/`expense`), `description?`, `date`, обязательные связи на `Category` и `User`, необязательная (`Int?`) связь на `PaymentMethod` (`onDelete: SetNull`).
 
 ## Окружение
 
