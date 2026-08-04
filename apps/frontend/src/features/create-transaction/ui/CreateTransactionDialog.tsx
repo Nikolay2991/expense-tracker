@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -18,7 +19,10 @@ export function CreateTransactionDialog({ onCreated }: { onCreated?: () => void 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Добавить транзакцию</Button>
+        <Button>
+          <Plus />
+          Добавить транзакцию
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

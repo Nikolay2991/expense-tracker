@@ -4,5 +4,5 @@ export type {
   TransactionsSummary,
   TransactionsListResponse,
 } from "./model/types";
-export { formatAmount, formatDate } from "./lib/format";
+export { formatAmount, formatDate, formatMoney } from "./lib/format";
 export { TransactionItem } from "./ui/TransactionItem";
