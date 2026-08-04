@@ -3,53 +3,79 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --radius: 1.1rem;
+
+  /* Base neutrals — soft light canvas, white panels, near-black ink */
+  --background: #f1f1ef;
+  --foreground: #191a1c;
+  --card: #ffffff;
+  --card-foreground: #191a1c;
+  --popover: #ffffff;
+  --popover-foreground: #191a1c;
+  --primary: #1b1c1e;
+  --primary-foreground: #faf9f6;
+  --secondary: #efefec;
+  --secondary-foreground: #191a1c;
+  --muted: #f4f4f2;
+  --muted-foreground: #8a8b90;
+  --accent: #f1f1ee;
+  --accent-foreground: #191a1c;
+  --destructive: #e5484d;
+  --border: #e9e9e5;
+  --input: #e4e4df;
+  --ring: #cdcdc7;
+
+  /* Pastel accents for stat cards / badges (bg + matching ink) */
+  --mint: #dcf3e6;
+  --mint-ink: #1f7a4d;
+  --lavender: #e6e8fb;
+  --lavender-ink: #4a4fc0;
+  --peach: #fbe6db;
+  --peach-ink: #c2643b;
+
+  /* Positive / negative money */
+  --up: #1f7a4d;
+  --down: #191a1c;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #121214;
+  --foreground: #f3f3f0;
+  --card: #1b1c1f;
+  --card-foreground: #f3f3f0;
+  --popover: #1b1c1f;
+  --popover-foreground: #f3f3f0;
+  --primary: #f3f3f0;
+  --primary-foreground: #1b1c1f;
+  --secondary: #26272b;
+  --secondary-foreground: #f3f3f0;
+  --muted: #26272b;
+  --muted-foreground: #9a9ba1;
+  --accent: #26272b;
+  --accent-foreground: #f3f3f0;
+  --destructive: #f2555a;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.13);
+  --ring: #55565c;
+
+  --mint: #1c3a2c;
+  --mint-ink: #7fe0aa;
+  --lavender: #262a4d;
+  --lavender-ink: #a9adf6;
+  --peach: #3d2b23;
+  --peach-ink: #f0a883;
+
+  --up: #7fe0aa;
+  --down: #f3f3f0;
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -68,12 +94,77 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-mint: var(--mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-lavender: var(--lavender);
+  --color-lavender-ink: var(--lavender-ink);
+  --color-peach: var(--peach);
+  --color-peach-ink: var(--peach-ink);
+  --color-up: var(--up);
+  --color-down: var(--down);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-manrope), sans-serif;
 }
 
 @layer base {
+  * {
+    border-color: var(--border);
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Space Grotesk for display headings and financial figures */
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+@layer components {
+  /* Soft raised panel used across the dashboard */
+  .panel {
+    background: var(--card);
+    border-radius: var(--radius-2xl);
+    box-shadow:
+      0 1px 2px rgba(24, 25, 27, 0.04),
+      0 8px 24px -12px rgba(24, 25, 27, 0.12);
+  }
+}
+
+/* Stagger-in for dashboard cards */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
   }
 }

@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { getCategories, type Category } from "@/entities/category";
 import { ApiError } from "@/shared/api/client";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
@@ -90,17 +91,34 @@ export function CreateTransactionForm({ onSuccess }: { onSuccess: () => void }) 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Тип</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="expense">Расход</SelectItem>
-                  <SelectItem value="income">Доход</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <div className="grid grid-cols-2 gap-1 rounded-full bg-secondary p-1">
+                  {(
+                    [
+                      { value: "expense", label: "Расход" },
+                      { value: "income", label: "Доход" },
+                    ] as const
+                  ).map((option) => {
+                    const active = field.value === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => field.onChange(option.value)}
+                        className={cn(
+                          "h-8 rounded-full text-sm font-medium transition-colors",
+                          active
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

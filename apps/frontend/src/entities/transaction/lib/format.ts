@@ -18,6 +18,11 @@ export function formatAmount(amount: number, type: TransactionType): string {
   return `${sign}${moneyFormatter.format(amount)}`;
 }
 
+/** Форматирует сумму как валюту без знака. */
+export function formatMoney(amount: number): string {
+  return moneyFormatter.format(amount);
+}
+
 export function formatDate(date: Date | string): string {
   return dateFormatter.format(new Date(date));
 }
